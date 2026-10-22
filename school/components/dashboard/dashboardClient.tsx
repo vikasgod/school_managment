@@ -14,6 +14,12 @@ import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   PieChart, Pie, Cell, LineChart, Line, Area, AreaChart
 } from "recharts";
+import AttendanceToday from "./attendanceToday";
+import UpcomingEvents from "./UpcomingEvents"
+import StudentOverview from "./studentOverview";
+import QuickAction from "./quickAction";
+import FeeCollection from "./feeCollection";
+import RecentActivity from "./recentActivity";
 
 type NavItem = { label: string; icon: React.ElementType; children?: string[] };
 
@@ -128,28 +134,10 @@ export default function DashboardClient({ user }: { user: { name: string; email:
   const [activeNav, setActiveNav] = useState("Dashboard");
   const [expandedNav, setExpandedNav] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [showStudentForm, setShowStudentForm] = useState(false);
-  const [studentName, setStudentName] = useState("");
-  const [studentClass, setStudentClass] = useState("Class 1");
-  const [studentPhone, setStudentPhone] = useState("");
-  const [notice, setNotice] = useState("");
-  const [students, setStudents] = useState(["Rahul Sharma", "Riya Patel"]);
   const filteredActivities = useMemo(
     () => activities.filter((item) => `${item.title} ${item.detail}`.toLowerCase().includes(search.toLowerCase())),
     [search]
   );
-
-  function addStudent(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    if (!studentName.trim() || !studentPhone.trim()) return;
-    setStudents((old) => [studentName.trim(), ...old]);
-    setNotice(`${studentName.trim()} added to this demo dashboard. Connect MongoDB API to save permanently.`);
-    setStudentName("");
-    setStudentPhone("");
-    setStudentClass("Class 1");
-    setShowStudentForm(false);
-    window.setTimeout(() => setNotice(""), 5000);
-  }
 
   return (
     <div className="min-h-screen">
@@ -222,8 +210,6 @@ export default function DashboardClient({ user }: { user: { name: string; email:
             <div className="inline-flex w-fit items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-semibold text-slate-600 shadow-sm"><CalendarDays size={16} className="text-slate-500"/> Tue, 21 Oct 2026</div>
           </div>
 
-          {notice && <div className="flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800"><Check size={17} className="mt-0.5 shrink-0"/>{notice}</div>}
-
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-4">
             <StatCard title="Total Students" value="642" note="vs. last month" icon={Users} tone="blue" change="5%"/>
             <StatCard title="Total Staff" value="48" note="vs. last month" icon={BriefcaseBusiness} tone="green" change="2%"/>
@@ -232,108 +218,20 @@ export default function DashboardClient({ user }: { user: { name: string; email:
           </div>
 
           <div className="grid grid-cols-1 gap-4 2xl:grid-cols-12">
-            <div className="2xl:col-span-5">
-              <Panel title="Student Overview" icon={Users}>
-                <div className="h-[250px] w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={studentChartData} margin={{ top: 4, right: 0, left: -22, bottom: 0 }} barGap={3}>
-                      <CartesianGrid stroke="#e8eef6" strokeDasharray="3 3" vertical={false}/>
-                      <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#74839a" }} axisLine={false} tickLine={false} interval={0}/>
-                      <YAxis tick={{ fontSize: 10, fill: "#74839a" }} axisLine={false} tickLine={false}/>
-                      <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #e2e8f0", fontSize: 12 }}/>
-                      <Bar dataKey="total" name="Total" fill="#3988f5" radius={[3,3,0,0]} maxBarSize={12}/>
-                      <Bar dataKey="present" name="Present" fill="#2fbd8b" radius={[3,3,0,0]} maxBarSize={12}/>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="mt-1 flex items-center justify-center gap-5 text-[11px] text-slate-500"><span><i className="mr-1.5 inline-block h-2 w-2 rounded-full bg-blue-500"/>Total</span><span><i className="mr-1.5 inline-block h-2 w-2 rounded-full bg-emerald-500"/>Present</span></div>
-              </Panel>
-            </div>
-
-            <div className="2xl:col-span-3">
-              <Panel title="Attendance Today" icon={ClipboardCheck}>
-                <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-around 2xl:flex-col">
-                  <div className="relative h-[170px] w-[170px] shrink-0">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart><Pie data={attendanceData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={55} outerRadius={75} paddingAngle={3} stroke="none">{attendanceData.map((entry) => <Cell key={entry.name} fill={entry.color}/>)}</Pie><Tooltip/></PieChart>
-                    </ResponsiveContainer>
-                    <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center"><span className="text-2xl font-extrabold text-slate-800">92%</span><span className="mt-0.5 text-[9px] text-slate-400">Overall Attendance</span></div>
-                  </div>
-                  <div className="w-full space-y-3 sm:max-w-[145px] 2xl:max-w-none">
-                    {attendanceData.map((item) => <div key={item.name} className="flex items-center gap-2 text-xs"><span className="h-2.5 w-2.5 rounded-full" style={{ background: item.color }}/><span className="flex-1 text-slate-500">{item.name}</span><strong className="text-slate-700">{item.value}</strong></div>)}
-                  </div>
-                </div>
-                <div className="mt-4 rounded-xl bg-blue-50 p-3 text-xs text-blue-700"><p className="font-semibold"><Sparkles size={14} className="mr-1.5 inline"/>Class 5 has the lowest attendance (86%)</p><button className="mt-2 font-semibold hover:underline">View details <ArrowRight className="ml-1 inline" size={12}/></button></div>
-              </Panel>
-            </div>
-
-            <div className="2xl:col-span-4">
-              <Panel title="Upcoming Events" icon={CalendarDays} action="View all">
-                <div className="divide-y divide-slate-100">
-                  {events.map((event) => <div key={event.day} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
-                    <div className="grid h-11 w-11 shrink-0 content-center rounded-xl bg-slate-50 text-center"><span className="text-sm font-extrabold text-slate-700">{event.day}</span><span className="text-[9px] font-bold tracking-wide text-slate-400">{event.month}</span></div>
-                    <div className="min-w-0 flex-1"><p className="truncate text-xs font-bold text-slate-700">{event.title}</p><p className="mt-1 text-[10px] text-slate-400">{event.time}</p></div>
-                    <span className={cx("hidden shrink-0 rounded-md px-2 py-1 text-[9px] font-bold sm:inline-block",
-                      event.color === "blue" ? "bg-blue-50 text-blue-600" :
-                      event.color === "amber" ? "bg-amber-50 text-amber-700" :
-                      event.color === "green" ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-600")}>{event.tag}</span>
-                  </div>)}
-                </div>
-              </Panel>
-            </div>
+            <StudentOverview studentChartData={studentChartData} />
+            <AttendanceToday attendanceData={attendanceData} />
+ 
+            <UpcomingEvents events={events} cx={cx} />
           </div>
 
           <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
             <div className="space-y-4 xl:col-span-4">
-              <Panel title="Quick Actions" icon={Activity}>
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-2 2xl:grid-cols-3">
-                  {[
-                    { label: "Add Student", icon: Users, tone: "blue", action: () => setShowStudentForm(true) },
-                    { label: "Add Staff", icon: UserCog, tone: "green", action: () => setNotice("Staff form is the next module to implement.") },
-                    { label: "Mark Attendance", icon: CalendarCheck, tone: "purple", action: () => setNotice("Attendance module is the next module to implement.") },
-                    { label: "Create Fee Invoice", icon: CreditCard, tone: "amber", action: () => setNotice("Fee invoice module is the next module to implement.") },
-                    { label: "Add Exam", icon: ClipboardList, tone: "rose", action: () => setNotice("Examinations module is the next module to implement.") },
-                    { label: "Generate Report", icon: FileBarChart, tone: "cyan", action: () => setNotice("Reports module is the next module to implement.") },
-                  ].map((item) => { const Icon = item.icon; return <button key={item.label} onClick={item.action} className="group flex min-h-[98px] flex-col items-center justify-center gap-2 rounded-xl border border-slate-200/80 bg-slate-50/50 px-2 py-3 text-center transition hover:-translate-y-0.5 hover:border-blue-200 hover:bg-white hover:shadow-md"><span className={cx("grid h-10 w-10 place-items-center rounded-2xl",
-                    item.tone === "blue" ? "bg-blue-100 text-blue-600" :
-                    item.tone === "green" ? "bg-emerald-100 text-emerald-600" :
-                    item.tone === "purple" ? "bg-violet-100 text-violet-600" :
-                    item.tone === "amber" ? "bg-amber-100 text-amber-600" :
-                    item.tone === "rose" ? "bg-rose-100 text-rose-600" : "bg-cyan-100 text-cyan-600")}><Icon size={19}/></span><span className="text-[11px] font-semibold text-slate-700">{item.label}</span></button>; })}
-                </div>
-              </Panel>
+              <QuickAction />
 
-              <Panel title="Fee Collection" icon={Wallet}>
-                <div className="flex items-center gap-3">
-                  <div className="h-[140px] min-w-0 flex-1">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={feeData} margin={{ top: 8, right: 3, left: -25, bottom: 0 }}>
-                        <defs><linearGradient id="feeGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#22b987" stopOpacity={0.25}/><stop offset="95%" stopColor="#22b987" stopOpacity={0.02}/></linearGradient></defs>
-                        <CartesianGrid stroke="#edf2f7" strokeDasharray="3 3" vertical={false}/>
-                        <XAxis dataKey="month" tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false}/>
-                        <YAxis tick={{ fontSize: 9, fill: "#94a3b8" }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}L`}/>
-                        <Tooltip formatter={(value) => [`₹${Number(value).toFixed(2)} lakh`, "Collected"]}/>
-                        <Area type="monotone" dataKey="amount" stroke="#20b486" strokeWidth={2} fill="url(#feeGradient)" activeDot={{ r: 4 }}/>
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div className="w-[112px] shrink-0 rounded-xl bg-emerald-50/70 p-3"><p className="text-[10px] text-slate-500">This month</p><p className="mt-1 text-sm font-extrabold text-slate-800">₹3,42,500</p><p className="mt-3 text-[10px] text-slate-500">Last month</p><p className="mt-1 text-xs font-bold text-slate-700">₹3,05,200</p><p className="mt-2 text-xs font-bold text-emerald-600">↑ 12%</p></div>
-                </div>
-              </Panel>
+              <FeeCollection feeData={feeData} />
             </div>
 
-            <div className="xl:col-span-4">
-              <Panel title="Recent Activities" icon={Clock3} action="View all">
-                <div className="divide-y divide-slate-100">
-                  {filteredActivities.map((item) => { const Icon = item.icon; return <div key={item.title} className="flex items-start gap-3 py-3 first:pt-0 last:pb-0"><span className={cx("grid h-9 w-9 shrink-0 place-items-center rounded-xl",
-                    item.tone === "green" ? "bg-emerald-50 text-emerald-600" :
-                    item.tone === "amber" ? "bg-amber-50 text-amber-600" :
-                    item.tone === "blue" ? "bg-blue-50 text-blue-600" :
-                    item.tone === "purple" ? "bg-violet-50 text-violet-600" : "bg-rose-50 text-rose-600")}><Icon size={17}/></span><div className="min-w-0 pt-0.5"><p className="text-xs font-semibold leading-5 text-slate-700">{item.title}</p><p className="mt-0.5 text-[10px] text-slate-400">{item.detail}</p></div></div>; })}
-                  {filteredActivities.length === 0 && <p className="py-8 text-center text-sm text-slate-400">No matching activities.</p>}
-                </div>
-              </Panel>
-            </div>
+            <RecentActivity filteredActivities={filteredActivities} />
 
             <div className="xl:col-span-4">
               <Panel title="Class Wise Strength" icon={Users} action="View all">
@@ -347,22 +245,8 @@ export default function DashboardClient({ user }: { user: { name: string; email:
             </div>
           </div>
 
-          <footer className="flex flex-col justify-between gap-2 pb-2 pt-1 text-[11px] text-slate-400 sm:flex-row"><span>© 2026 Bright Future School ERP</span><span>Built for better school management</span></footer>
-        </div>
+          </div>
       </main>
-
-      {showStudentForm && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4">
-        <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
-          <div className="mb-5 flex items-center justify-between"><div><h2 className="text-lg font-extrabold text-slate-800">Add Student</h2><p className="mt-1 text-xs text-slate-500">Quick demo form</p></div><button onClick={() => setShowStudentForm(false)} className="grid h-9 w-9 place-items-center rounded-xl hover:bg-slate-100" aria-label="Close form"><X size={18}/></button></div>
-          <form onSubmit={addStudent} className="space-y-4">
-            <label className="block"><span className="mb-1.5 block text-xs font-bold text-slate-600">Student full name</span><input required value={studentName} onChange={(e) => setStudentName(e.target.value)} placeholder="e.g. Rahul Sharma" className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-50"/></label>
-            <label className="block"><span className="mb-1.5 block text-xs font-bold text-slate-600">Class</span><select value={studentClass} onChange={(e) => setStudentClass(e.target.value)} className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-blue-400">{["Nursery","LKG","UKG",...Array.from({length:10},(_,i)=>`Class ${i+1}`)].map((c)=><option key={c}>{c}</option>)}</select></label>
-            <label className="block"><span className="mb-1.5 block text-xs font-bold text-slate-600">Parent phone</span><input required value={studentPhone} onChange={(e) => setStudentPhone(e.target.value)} type="tel" minLength={10} placeholder="10-digit mobile number" className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-50"/></label>
-            <div className="flex justify-end gap-2 pt-2"><button type="button" onClick={() => setShowStudentForm(false)} className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600">Cancel</button><button type="submit" className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-700"><Plus className="mr-1 inline" size={15}/> Add student</button></div>
-            <p className="text-[11px] leading-5 text-amber-700">This form currently updates the browser demo only. Use the API below for permanent MongoDB storage.</p>
-          </form>
-        </div>
-      </div>}
     </div>
   );
 }

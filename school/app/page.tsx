@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth";
-import DashboardClient from "@/components/dashboardClient";
+import DashboardClient from "@/components/dashboard/dashboardClient";
 
 export default async function Page() {
   const cookieStore = await cookies();
